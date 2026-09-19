@@ -2,7 +2,13 @@
   "manifest_version": 3,
   "name": "Web Debug Agent",
   "version": "0.1.0",
-  "description": "Click an element on any page and hand it to a Claude Code session you pick.",
+  "description": "Click or drag part of a local page and hand it, with a screenshot, to the Claude Code session or Codex thread you pick.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "permissions": [
     "storage",
     "activeTab"
@@ -16,7 +22,13 @@
   },
   "options_page": "options.html",
   "action": {
-    "default_title": "Web Debug Agent — toggle picker (Cmd+Shift+U)"
+    "default_title": "Web Debug Agent — toggle picker (Cmd+Shift+U)",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "commands": {
     "toggle-picker": {
