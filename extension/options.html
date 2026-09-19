@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Web Debug Agent</title>
+    <style>
+      body { font: 14px/1.6 -apple-system, system-ui, sans-serif; margin: 32px; max-width: 520px; }
+      label { display: block; margin: 18px 0 6px; font-weight: 600; }
+      input { width: 100%; padding: 8px 10px; font: inherit; font-family: ui-monospace, monospace;
+              border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+      button { margin-top: 20px; padding: 8px 16px; font: inherit; border-radius: 6px;
+               border: 1px solid #333; background: #333; color: #fff; cursor: pointer; }
+      .hint { color: #666; font-size: 13px; margin-top: 4px; }
+      #status { margin-top: 14px; font-size: 13px; }
+      code { background: #f2f2f2; padding: 1px 5px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h2>Web Debug Agent</h2>
+    <label for="url">Bridge URL</label>
+    <input id="url" />
+    <label for="token">Bridge token</label>
+    <input id="token" placeholder="paste from ~/.webdbg/token" />
+    <div class="hint">Printed when the bridge starts, and stored at <code>~/.webdbg/token</code>.</div>
+    <button id="save">Save and test</button>
+    <div id="status"></div>
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "webdbg",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Click an element or drag a region on any local page and hand it, with a screenshot, to the Claude Code session or Codex thread you pick.",
+  "scripts": {
+    "bridge": "node bridge/server.mjs"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhpark1013/instant-web-capture-for-agent.git"
+  }
+}
