@@ -21,6 +21,15 @@ npm run bridge          # prints a token; leave it running
 Then `chrome://extensions` → Developer mode → **Load unpacked** → pick
 `extension/`. Open its options page, paste the token, **Save and test**.
 
+## Try it
+
+```sh
+npm run demo            # a throwaway page at http://localhost:4779
+```
+
+The screenshots below are that page. Every value in it comes from a CSS custom
+property, so you can see the token chain the picker reports.
+
 ## Use
 
 Press **Cmd+Shift+U** (Ctrl+Shift+U on Windows/Linux). A blue ring and a chip

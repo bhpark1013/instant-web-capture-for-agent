@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Click an element or drag a region on any local page and hand it, with a screenshot, to the Claude Code session or Codex thread you pick.",
   "scripts": {
-    "bridge": "node bridge/server.mjs"
+    "bridge": "node bridge/server.mjs",
+    "demo": "node demo/serve.mjs"
   },
   "license": "MIT",
   "repository": {

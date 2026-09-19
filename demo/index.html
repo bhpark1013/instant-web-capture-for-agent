@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Acme Metrics — webdbg demo</title>
+<style>
+  /* Values live in tokens so the picker has a var() chain to report, which is
+     the whole point of the "declared by" section. */
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --ink: #16181d;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --brand: #4f7cff;
+    --accent: #10b981;
+    --radius: 0.75rem;
+    --space: 8px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --surface: #171a20; --ink: #e8eaed;
+      --muted: #9aa0ab; --line: #262a32;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: calc(var(--space) * 5) calc(var(--space) * 3); }
+
+  header { display: flex; align-items: center; gap: calc(var(--space) * 2);
+           margin-bottom: calc(var(--space) * 4); }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--brand); flex: none; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
+
+  .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--space) * 2);
+         margin-bottom: calc(var(--space) * 3); }
+  .stat { background: var(--surface); border: 1px solid var(--line);
+          border-radius: var(--radius); padding: calc(var(--space) * 2.5); }
+  .stat .k { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+  .stat .v { font-size: 28px; font-weight: 650; margin: 0; letter-spacing: -0.02em; }
+  .stat .d { font-size: 12px; margin: 6px 0 0; color: var(--accent); }
+
+  .card { background: var(--surface); border: 1px solid var(--line);
+          border-radius: var(--radius); padding: calc(var(--space) * 3); }
+  .card h2 { font-size: 16px; margin: 0 0 4px; }
+  .card p { color: var(--muted); font-size: 14px; margin: 0 0 calc(var(--space) * 2.5); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px;
+       text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: var(--space); }
+  td { padding: calc(var(--space) * 1.25) 0; border-top: 1px solid var(--line); }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px;
+          font-size: 12px; background: color-mix(in oklab, var(--accent) 16%, transparent);
+          color: var(--accent); }
+  .pill.off { background: color-mix(in oklab, var(--muted) 16%, transparent); color: var(--muted); }
+
+  .actions { display: flex; gap: var(--space); margin-top: calc(var(--space) * 3); }
+  button { font: inherit; border-radius: calc(var(--radius) - 4px); padding: 9px 16px;
+           border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+           cursor: pointer; }
+  button.primary { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo"></div>
+      <div>
+        <h1>Acme Metrics</h1>
+        <p class="sub">A demo page for trying the picker. Nothing here is real.</p>
+      </div>
+    </header>
+
+    <div class="row">
+      <div class="stat"><p class="k">Active users</p><p class="v">5,820</p><p class="d">+4.1% this week</p></div>
+      <div class="stat"><p class="k">Sessions</p><p class="v">11,062</p><p class="d">+1.8% this week</p></div>
+      <div class="stat"><p class="k">Avg. duration</p><p class="v">11.8s</p><p class="d">+0.3s this week</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Recent deploys</h2>
+      <p>Every value on this page comes from a CSS custom property, so the picker has a token chain to report.</p>
+      <table>
+        <thead><tr><th>Service</th><th>Version</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>web</td><td>2.14.0</td><td><span class="pill">live</span></td></tr>
+          <tr><td>api</td><td>2.14.0</td><td><span class="pill">live</span></td></tr>
+          <tr><td>worker</td><td>2.13.6</td><td><span class="pill off">paused</span></td></tr>
+        </tbody>
+      </table>
+      <div class="actions">
+        <button class="primary">Deploy all</button>
+        <button>View log</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
