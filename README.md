@@ -3,7 +3,10 @@
 Point at part of a page you are building, and hand it to the coding agent
 session of your choice — with a screenshot and the source lines attached.
 
-![picking an element](docs/panel.png)
+![drag a region, pick a session, and watch it land](docs/demo.gif)
+
+*Left: the page being built. Right: the Claude Code session that was picked,
+receiving the request and opening the screenshot that came with it.*
 
 Other click-to-edit tools route by project directory, so whichever agent happens
 to watch that folder picks the request up. This one routes by **session**: the
@@ -40,6 +43,8 @@ tell you the picker is live.
 **Click** an element, or **drag** a region:
 
 ![dragging a region](docs/drag.png)
+
+![the panel, with the session picker](docs/panel.png)
 
 Pick the session, say what should change, **Send** (or Cmd+Enter). Leave the box
 empty to just point at something. **Esc** cancels.
