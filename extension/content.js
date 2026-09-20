@@ -504,7 +504,7 @@
   }
 
   // A screenshot is a bonus: a failure is recorded and reported, never fatal.
-  // Capturing needs the activeTab grant or <all_urls>.
+  // Capturing needs the activeTab grant or a matching host permission.
   async function capture() {
     host.style.visibility = 'hidden'
     try {
