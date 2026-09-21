@@ -11,5 +11,30 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bhpark1013/instant-web-capture-for-agent.git"
+  },
+  "bin": {
+    "webdbg": "bridge/cli.mjs"
+  },
+  "files": [
+    "bridge/",
+    "demo/",
+    "extension/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude-code",
+    "codex",
+    "chrome-extension",
+    "devtools",
+    "ai-agent",
+    "screenshot"
+  ],
+  "homepage": "https://github.com/bhpark1013/instant-web-capture-for-agent#readme",
+  "bugs": {
+    "url": "https://github.com/bhpark1013/instant-web-capture-for-agent/issues"
   }
 }

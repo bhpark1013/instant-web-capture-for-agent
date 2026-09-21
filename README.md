@@ -16,14 +16,15 @@ real titles, and you choose one.
 ## Install
 
 ```sh
-git clone https://github.com/bhpark1013/instant-web-capture-for-agent
-cd instant-web-capture-for-agent
-npm run bridge          # prints a token; leave it running
+npx webdbg              # prints a token; leave it running
 ```
 
-Then `chrome://extensions` → Developer mode → **Load unpacked** → pick
-`extension/`. Open its options page, paste the token, **Save and test**, then
-hit **Enable screenshots**.
+The extension cannot open a Unix socket or read `~/.claude`, so something on
+your machine has to do that for it. That something is this bridge, and it has to
+stay running while you use the picker.
+
+Then install the extension and open its options page: paste the token,
+**Save and test**, then hit **Enable screenshots**.
 
 That last button asks for `<all_urls>`, because Chrome grants
 `captureVisibleTab` under nothing narrower. It is an optional permission, so the
@@ -31,10 +32,14 @@ extension installs without it and you decide. It does not widen where the picker
 runs: the content script is declared for `localhost`, `127.0.0.1` and
 `*.localhost` only. Skip it and selections still send — just without the image.
 
+To run the extension from source instead of the store, use
+`chrome://extensions` → Developer mode → **Load unpacked** and point it at
+`npx webdbg extension`.
+
 ## Try it
 
 ```sh
-npm run demo            # a throwaway page at http://localhost:4779
+npx webdbg demo         # a throwaway page at http://localhost:4779
 ```
 
 The screenshots below are that page. Every value in it comes from a CSS custom
