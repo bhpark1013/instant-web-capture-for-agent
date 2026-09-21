@@ -22,7 +22,14 @@ npm run bridge          # prints a token; leave it running
 ```
 
 Then `chrome://extensions` → Developer mode → **Load unpacked** → pick
-`extension/`. Open its options page, paste the token, **Save and test**.
+`extension/`. Open its options page, paste the token, **Save and test**, then
+hit **Enable screenshots**.
+
+That last button asks for `<all_urls>`, because Chrome grants
+`captureVisibleTab` under nothing narrower. It is an optional permission, so the
+extension installs without it and you decide. It does not widen where the picker
+runs: the content script is declared for `localhost`, `127.0.0.1` and
+`*.localhost` only. Skip it and selections still send — just without the image.
 
 ## Try it
 

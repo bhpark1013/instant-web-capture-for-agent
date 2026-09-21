@@ -29,6 +29,8 @@ async function shot(tab, rect, viewport) {
   // captureVisibleTab grabs whichever tab is visible, not the one that asked —
   // capturing from a background tab would silently return the wrong page.
   if (!tab?.active) throw new Error('tab is not the active tab')
+  if (!(await chrome.permissions.contains({ origins: ['<all_urls>'] })))
+    throw new Error('screenshots not enabled — turn them on in the extension options page')
   const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' })
   const bitmap = await createImageBitmap(await (await fetch(dataUrl)).blob())
 
