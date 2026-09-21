@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Web Debug Agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Click or drag part of a local page and hand it, with a screenshot, to the Claude Code session or Codex thread you pick.",
   "icons": {
     "16": "icons/icon16.png",
@@ -11,7 +11,8 @@
   },
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "http://localhost/*",

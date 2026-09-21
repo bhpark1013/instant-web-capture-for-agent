@@ -16,15 +16,23 @@ real titles, and you choose one.
 ## Install
 
 ```sh
-npx webdbg              # prints a token; leave it running
+npx webdbg install      # once
 ```
 
 The extension cannot open a Unix socket or read `~/.claude`, so something on
-your machine has to do that for it. That something is this bridge, and it has to
-stay running while you use the picker.
+your machine has to do that for it. This registers a small helper that Chrome
+starts by itself whenever the picker needs it and stops afterwards — nothing to
+keep running, no port, and no token, because Chrome only connects the extension
+ids named in the registration. It copies the helper to `~/.webdbg/host/`, so
+the `npx` cache can come and go. `npx webdbg uninstall` removes it.
 
-Then install the extension and open its options page: paste the token,
-**Save and test**, then hit **Enable screenshots**.
+Then install the extension, open its options page, and hit
+**Enable screenshots**. The Connection line at the top should already say the
+helper is connected.
+
+If you would rather not register anything, `npx webdbg` runs the same thing as
+an HTTP bridge on loopback instead; it has to stay running, and you paste the
+token it prints into the options page.
 
 That last button asks for `<all_urls>`, because Chrome grants
 `captureVisibleTab` under nothing narrower. It is an optional permission, so the

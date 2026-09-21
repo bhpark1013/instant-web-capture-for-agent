@@ -1,6 +1,7 @@
 // Local HTTP bridge between the browser extension and this machine's Claude
 // Code sessions. A browser extension cannot open a Unix socket, so it talks to
-// this instead.
+// this instead — or, once `npx webdbg install` has run, to native.mjs over a
+// pipe Chrome opens itself, in which case nothing has to be left running.
 //
 // Bound to loopback and gated on a bearer token: any page in your browser can
 // attempt a request, so the token is what separates the extension from a random
@@ -8,16 +9,12 @@
 
 import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
-import { mkdirSync, readFileSync, writeFileSync, existsSync, chmodSync, readdirSync, statSync, unlinkSync } from 'node:fs'
-import { homedir } from 'node:os'
+import { mkdirSync, readFileSync, writeFileSync, existsSync, chmodSync } from 'node:fs'
 import { join } from 'node:path'
-import { listSessions, sendToSession } from './sessions.mjs'
-import { listCodexThreads, sendToCodex } from './codex.mjs'
+import { CONF_DIR, RequestError, sessions, saveShot, send } from './handlers.mjs'
 
 const PORT = Number(process.env.WEBDBG_PORT ?? 4778)
-const CONF_DIR = join(homedir(), '.webdbg')
 const TOKEN_FILE = join(CONF_DIR, 'token')
-const SHOT_DIR = join(CONF_DIR, 'shots')
 
 function loadToken() {
   mkdirSync(CONF_DIR, { recursive: true })
@@ -61,18 +58,11 @@ function readBody(req, limit = 1_000_000) {
   })
 }
 
-// A capture happens when the element is picked, so cancelling leaves the file
-// behind. Keep the recent ones and drop the rest.
-const KEEP = 200
-function prune() {
+async function parse(req, limit) {
   try {
-    const files = readdirSync(SHOT_DIR)
-      .filter((f) => f.endsWith('.png'))
-      .map((f) => ({ f, t: statSync(join(SHOT_DIR, f)).mtimeMs }))
-      .sort((a, b) => b.t - a.t)
-    for (const { f } of files.slice(KEEP)) unlinkSync(join(SHOT_DIR, f))
+    return JSON.parse(await readBody(req, limit))
   } catch {
-    // Pruning is housekeeping; never fail a capture over it.
+    throw new RequestError(400, 'bad json')
   }
 }
 
@@ -81,74 +71,21 @@ const server = createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return res.writeHead(204).end()
 
   const url = new URL(req.url, 'http://127.0.0.1')
-
   if (url.pathname === '/health') return json(res, 200, { ok: true })
 
   const auth = req.headers.authorization ?? ''
   if (auth !== `Bearer ${TOKEN}`) return json(res, 401, { error: 'bad token' })
 
-  if (req.method === 'GET' && url.pathname === '/sessions') {
-    // Never hand the page a session's peer token; it only needs an opaque id.
-    const claude = listSessions().map(({ token, socket, ...safe }) => safe)
-    let codex = []
-    try {
-      codex = listCodexThreads()
-    } catch {
-      // Codex not installed, or no index yet: Claude sessions still work.
-    }
-    return json(res, 200, { sessions: [...claude, ...codex] })
+  try {
+    if (req.method === 'GET' && url.pathname === '/sessions') return json(res, 200, sessions())
+    if (req.method === 'POST' && url.pathname === '/shot')
+      return json(res, 200, saveShot((await parse(req, 24_000_000))?.png))
+    if (req.method === 'POST' && url.pathname === '/send')
+      return json(res, 200, await send((await parse(req)) ?? {}))
+    return json(res, 404, { error: 'not found' })
+  } catch (e) {
+    return json(res, e instanceof RequestError ? e.status : 502, { error: String(e.message ?? e) })
   }
-
-  if (req.method === 'POST' && url.pathname === '/shot') {
-    let body
-    try {
-      body = JSON.parse(await readBody(req, 24_000_000))
-    } catch {
-      return json(res, 400, { error: 'bad json' })
-    }
-    const png = String(body?.png ?? '').replace(/^data:image\/png;base64,/, '')
-    if (!png) return json(res, 400, { error: 'png required' })
-
-    mkdirSync(SHOT_DIR, { recursive: true })
-    prune()
-    const file = join(SHOT_DIR, `${Date.now()}-${randomBytes(3).toString('hex')}.png`)
-    writeFileSync(file, Buffer.from(png, 'base64'))
-    return json(res, 200, { ok: true, path: file })
-  }
-
-  if (req.method === 'POST' && url.pathname === '/send') {
-    let body
-    try {
-      body = JSON.parse(await readBody(req))
-    } catch (e) {
-      return json(res, 400, { error: 'bad json' })
-    }
-    // `id` is "claude:<pid>" or "codex:<threadId>"; `pid` is the older form.
-    const { id, pid, text } = body ?? {}
-    const ref = id ?? (pid ? `claude:${pid}` : null)
-    if (!ref || typeof text !== 'string' || !text.trim())
-      return json(res, 400, { error: 'id and text required' })
-
-    const [agent, rest] = [ref.slice(0, ref.indexOf(':')), ref.slice(ref.indexOf(':') + 1)]
-
-    try {
-      if (agent === 'codex') {
-        const t = listCodexThreads().find((x) => x.threadId === rest)
-        if (!t) return json(res, 404, { error: 'codex thread not found' })
-        await sendToCodex(rest, text)
-        return json(res, 200, { ok: true, name: t.label, agent: 'codex' })
-      }
-
-      const target = listSessions().find((s) => s.pid === Number(rest))
-      if (!target) return json(res, 404, { error: 'session not found or no longer live' })
-      const r = await sendToSession(target, text)
-      return json(res, 200, { ok: true, msgId: r.msgId, name: target.label ?? target.name, agent: 'claude' })
-    } catch (e) {
-      return json(res, 502, { error: String(e.message ?? e) })
-    }
-  }
-
-  return json(res, 404, { error: 'not found' })
 })
 
 server.listen(PORT, '127.0.0.1', () => {

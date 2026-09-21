@@ -21,6 +21,18 @@
   </head>
   <body>
     <h2>Web Debug Agent</h2>
+
+    <h3 style="margin-top:0">Connection</h3>
+    <div id="conn" class="hint">Checking…</div>
+    <div class="hint" style="margin-top:8px">
+      Easiest: run <code>npx webdbg install</code> once. Chrome then starts the
+      helper itself whenever the picker needs it — nothing to keep running and no
+      token to paste. The fields below are only for the HTTP bridge
+      (<code>npx webdbg</code>), used when the helper is not installed.
+    </div>
+
+    <hr />
+    <h3>HTTP bridge (fallback)</h3>
     <label for="url">Bridge URL</label>
     <input id="url" />
     <label for="token">Bridge token</label>
