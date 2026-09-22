@@ -56,7 +56,16 @@
   .msg { font-size: 12px; min-height: 16px; }
   .ok { color: #137333; } .err { color: #c5221f; }
   .hint { font-size: 11px; color: #9aa0ab; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 6px; }
+  .tab { flex: 1; font: inherit; font-size: 12px; font-weight: 600; padding: 6px 8px;
+         border-radius: 7px; border: 1px solid #d9dce3; background: #f5f6f8; color: #6b7280;
+         cursor: pointer; }
+  .tab.on { background: #16181d; color: #fff; border-color: #16181d; }
+  .tab:disabled { opacity: .4; cursor: default; }
+  .tab small { font-weight: 500; opacity: .75; margin-left: 4px; }
   @media (prefers-color-scheme: dark) {
+    .tab { background: #22252b; color: #9aa0ab; border-color: #3a3e45; }
+    .tab.on { background: #e8eaed; color: #16181d; border-color: #e8eaed; }
     .panel { background: #1b1d22; color: #e8eaed; border-color: #34373d; }
     .hd { background: #22252b; border-color: #34373d; }
     .sel { background: #22252b; color: #c4c8cf; border-color: #34373d; }
@@ -531,9 +540,12 @@
     ui.innerHTML = `
       <div class="hd"><b>Web Debug Agent</b><button class="x" title="Close">×</button></div>
       <div class="bd">
-        <div class="sel"></div>
         <div>
-          <label for="s">Send to session</label>
+          <label>Send to</label>
+          <div class="tabs">
+            <button class="tab" data-agent="claude">Claude Code<small></small></button>
+            <button class="tab" data-agent="codex">Codex<small></small></button>
+          </div>
           <select id="s"><option>loading…</option></select>
         </div>
         <div>
@@ -547,47 +559,61 @@
     root.append(ui)
 
     const $ = (q) => ui.querySelector(q)
-    $('.sel').textContent = picked.kind === 'region'
-      ? `region ${picked.rect.w}×${picked.rect.h} · ${picked.elements.length} elements\n` +
-        picked.elements.map((e) => `<${e.tag}>${e.source ? ' ' + e.source : ''}`).join('\n')
-      : picked.source
-        ? `${picked.source}\n${picked.selector}`
-        : picked.selector
     $('.x').addEventListener('click', disable)
 
     const sel = $('#s'), ta = $('#t'), go = $('.go'), msg = $('.msg')
 
-    try {
-      const list = await loadSessions()
-      const { [`last:${location.origin}`]: last } = await chrome.storage.local.get(`last:${location.origin}`)
+    // Agent first, then the session within it. The tab is chosen from the last
+    // id used on this origin, else the first agent that has anything live.
+    let list = []
+    let agent = null
+    const fill = () => {
       sel.innerHTML = ''
+      const rows = list.filter((s) => (s.agent ?? 'claude') === agent)
+      if (!rows.length) {
+        sel.innerHTML = '<option>no sessions</option>'
+        go.disabled = true
+        return
+      }
+      for (const s of rows) {
+        const o = document.createElement('option')
+        o.value = s.id
+        const bits = [s.label ?? s.name]
+        if (s.status) bits.push(s.status)
+        if (s.kind === 'bg') bits.push('bg')
+        // cwd is only worth showing when it is not the plain home directory —
+        // otherwise every row ends in the same "~" and carries no signal.
+        const dir = (s.cwd ?? '').replace(/^\/Users\/[^/]+/, '~')
+        if (dir && dir !== '~') bits.push(dir)
+        o.textContent = bits.join(' · ')
+        o.title = agent === 'codex' ? `codex thread ${s.threadId}` : `${s.name} · pid ${s.pid} · ${dir}`
+        sel.append(o)
+      }
+      go.disabled = false
+    }
+    const pick = (a) => {
+      agent = a
+      for (const t of ui.querySelectorAll('.tab')) t.classList.toggle('on', t.dataset.agent === a)
+      fill()
+    }
+    for (const t of ui.querySelectorAll('.tab'))
+      t.addEventListener('click', () => { if (!t.disabled) pick(t.dataset.agent) })
+
+    try {
+      list = await loadSessions()
+      const { [`last:${location.origin}`]: last } = await chrome.storage.local.get(`last:${location.origin}`)
+      const count = (a) => list.filter((s) => (s.agent ?? 'claude') === a).length
+      for (const t of ui.querySelectorAll('.tab')) {
+        const n = count(t.dataset.agent)
+        t.querySelector('small').textContent = n ? `· ${n}` : ''
+        t.disabled = !n
+      }
       if (!list.length) {
         sel.innerHTML = '<option>no sessions</option>'
       } else {
-        // Group by agent so the two never get confused for one another.
-        for (const [agent, heading] of [['claude', 'Claude Code'], ['codex', 'Codex']]) {
-          const rows = list.filter((s) => (s.agent ?? 'claude') === agent)
-          if (!rows.length) continue
-          const g = document.createElement('optgroup')
-          g.label = heading
-          for (const s of rows) {
-            const o = document.createElement('option')
-            o.value = s.id
-            const bits = [s.label ?? s.name]
-            if (s.status) bits.push(s.status)
-            if (s.kind === 'bg') bits.push('bg')
-            // cwd is only worth showing when it is not the plain home directory —
-            // otherwise every row ends in the same "~" and carries no signal.
-            const dir = (s.cwd ?? '').replace(/^\/Users\/[^/]+/, '~')
-            if (dir && dir !== '~') bits.push(dir)
-            o.textContent = bits.join(' · ')
-            o.title = agent === 'codex' ? `codex thread ${s.threadId}` : `${s.name} · pid ${s.pid} · ${dir}`
-            g.append(o)
-          }
-          sel.append(g)
-        }
+        const lastAgent = last?.split(':')[0]
+        pick(lastAgent && count(lastAgent) ? lastAgent : count('claude') ? 'claude' : 'codex')
         if (last && list.some((s) => s.id === last)) sel.value = last
-        go.disabled = false
       }
     } catch (e) {
       sel.innerHTML = '<option>bridge unreachable</option>'
@@ -601,7 +627,7 @@
       go.disabled = true
       msg.className = 'msg'
 
-      const shotNote = picked.shotError ? ` (no screenshot: ${picked.shotError})` : ''
+      const shotNote = picked.shot ? '' : ` (no screenshot: ${picked.shotError ?? 'not attempted'})`
       msg.textContent = 'Sending…'
       const id = sel.value
       const r = await chrome.runtime.sendMessage({

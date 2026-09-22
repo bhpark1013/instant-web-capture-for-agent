@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Web Debug Agent",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Click or drag part of a local page and hand it, with a screenshot, to the Claude Code session or Codex thread you pick.",
   "icons": {
     "16": "icons/icon16.png",
@@ -22,9 +22,6 @@
     "http://*.localhost/*",
     "https://*.localhost/*"
   ],
-  "optional_host_permissions": [
-    "<all_urls>"
-  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -40,7 +37,7 @@
     }
   },
   "commands": {
-    "toggle-picker": {
+    "_execute_action": {
       "suggested_key": {
         "default": "Ctrl+Shift+U",
         "mac": "Command+Shift+U"

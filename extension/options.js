@@ -31,27 +31,3 @@ $('save').addEventListener('click', async () => {
   $('status').style.color = r.ok ? '#137333' : '#c5221f'
   probe()
 })
-
-// Chrome grants captureVisibleTab only under <all_urls> or an activeTab grant,
-// and a keyboard command does not actually hand out the activeTab grant, so the
-// broad origin is asked for here — from a real click, which is the only context
-// chrome.permissions.request accepts.
-const SHOTS = { origins: ['<all_urls>'] }
-
-async function paintShots() {
-  const has = await chrome.permissions.contains(SHOTS)
-  $('shotStatus').textContent = has ? 'Screenshots are on.' : 'Screenshots are off.'
-  $('shotStatus').style.color = has ? '#137333' : '#666'
-  $('grant').disabled = has
-  $('grant').textContent = has ? 'Enabled' : 'Enable screenshots'
-}
-paintShots()
-
-$('grant').addEventListener('click', async () => {
-  const granted = await chrome.permissions.request(SHOTS).catch(() => false)
-  await paintShots()
-  if (!granted) {
-    $('shotStatus').textContent = 'Not granted — selections will be sent without an image.'
-    $('shotStatus').style.color = '#c5221f'
-  }
-})

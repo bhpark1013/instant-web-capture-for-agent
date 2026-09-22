@@ -86,13 +86,13 @@ async function call(type, payload) {
 }
 
 // The content script cannot capture a tab, so it hides its own overlay, asks
-// here, and gets back a saved file path to name in the payload.
+// here, and gets back a saved file path to name in the payload. The only
+// permission behind this is activeTab, which the shortcut or toolbar click
+// grants for that tab; the extension never asks for host access to capture.
 async function shot(tab, rect, viewport) {
   // captureVisibleTab grabs whichever tab is visible, not the one that asked —
   // capturing from a background tab would silently return the wrong page.
   if (!tab?.active) throw new Error('tab is not the active tab')
-  if (!(await chrome.permissions.contains({ origins: ['<all_urls>'] })))
-    throw new Error('screenshots not enabled — turn them on in the extension options page')
   const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' })
   const bitmap = await createImageBitmap(await (await fetch(dataUrl)).blob())
 
@@ -151,10 +151,8 @@ async function toggle(tab) {
   }
 }
 
-chrome.commands.onCommand.addListener(async (cmd) => {
-  if (cmd !== 'toggle-picker') return
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  toggle(tab)
-})
-
+// Both the toolbar icon and the keyboard shortcut arrive here: the shortcut is
+// declared as _execute_action, not a custom command, because only the action's
+// own invocation hands the extension the activeTab grant — and that grant is
+// what lets captureVisibleTab photograph the tab without asking for <all_urls>.
 chrome.action.onClicked.addListener(toggle)

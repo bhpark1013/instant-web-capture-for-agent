@@ -1,6 +1,6 @@
 {
   "name": "webdbg",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Click an element or drag a region on any local page and hand it, with a screenshot, to the Claude Code session or Codex thread you pick.",
   "scripts": {
