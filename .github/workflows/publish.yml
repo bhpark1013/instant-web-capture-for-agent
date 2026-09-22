@@ -1,0 +1,47 @@
+name: publish
+# Every push to main that touches the extension is packaged and submitted to the Chrome Web Store.
+# If the manifest version is not ahead of what the store already has, the patch version is bumped
+# and committed back first. A review that is still pending gets cancelled and replaced.
+on:
+  push:
+    branches: [main]
+    paths: ['extension/**', 'scripts/cws-publish.mjs', '.github/workflows/publish.yml']
+  workflow_dispatch:
+concurrency: { group: publish, cancel-in-progress: false }
+permissions: { contents: write }
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+      CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+      CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Pick the version
+        id: ver
+        run: |
+          set -e
+          node scripts/cws-publish.mjs status | tee status.txt
+          store=$(grep '^versions:' status.txt | grep -o '[0-9][0-9.]*' | sort -V | tail -1)
+          cur=$(node -p "require('./extension/manifest.json').version")
+          top=$(printf '%s\n%s\n' "$store" "$cur" | sort -V | tail -1)
+          if [ -n "$store" ] && [ "$top" = "$store" ]; then
+            next=$(echo "$store" | awk -F. '{$NF=$NF+1; print}' OFS=.)
+            echo "store has $store, manifest has $cur → bumping to $next"
+            node -e "
+              const fs=require('fs');
+              for (const f of ['extension/manifest.json','package.json']) {
+                const j=JSON.parse(fs.readFileSync(f)); j.version='$next'; fs.writeFileSync(f, JSON.stringify(j,null,2)+'\n') }"
+            git config user.name github-actions; git config user.email github-actions@github.com
+            git commit -am "chore(release): v$next [skip ci]"
+            git tag "v$next"; git push; git push --tags
+            cur=$next
+          fi
+          echo "version=$cur" >> "$GITHUB_OUTPUT"
+      - name: Package
+        run: (cd extension && zip -qr "../web-debug-agent-${{ steps.ver.outputs.version }}.zip" .) && /bin/ls -l *.zip
+      - name: Submit for review
+        run: node scripts/cws-publish.mjs submit "web-debug-agent-${{ steps.ver.outputs.version }}.zip"
