@@ -26,8 +26,9 @@ keep running, no port, and no token, because Chrome only connects the extension
 ids named in the registration. It copies the helper to `~/.webdbg/host/`, so
 the `npx` cache can come and go. `npx webdbg uninstall` removes it.
 
-Then install the extension, open its options page, and hit
-**Enable screenshots**. The Connection line at the top should already say the
+Then install the extension from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/web-debug-agent/nnjjhkoknjjbggkiadhkmnkngfljalmg),
+open its options page, and hit **Enable screenshots**. The Connection line at the top should already say the
 helper is connected.
 
 If you would rather not register anything, `npx webdbg` runs the same thing as
