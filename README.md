@@ -28,18 +28,17 @@ the `npx` cache can come and go. `npx webdbg uninstall` removes it.
 
 Then install the extension from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/web-debug-agent/nnjjhkoknjjbggkiadhkmnkngfljalmg),
-open its options page, and hit **Enable screenshots**. The Connection line at the top should already say the
+and open its options page. The Connection line at the top should already say the
 helper is connected.
 
 If you would rather not register anything, `npx webdbg` runs the same thing as
 an HTTP bridge on loopback instead; it has to stay running, and you paste the
 token it prints into the options page.
 
-That last button asks for `<all_urls>`, because Chrome grants
-`captureVisibleTab` under nothing narrower. It is an optional permission, so the
-extension installs without it and you decide. It does not widen where the picker
-runs: the content script is declared for `localhost`, `127.0.0.1` and
-`*.localhost` only. Skip it and selections still send — just without the image.
+Screenshots need no extra permission. Opening the picker from the toolbar
+icon or with ⇧⌘U (Ctrl+Shift+U) grants `activeTab` for that one tab, which is
+all `captureVisibleTab` needs; the extension never asks for `<all_urls>`. The
+content script is declared for `localhost`, `127.0.0.1` and `*.localhost` only.
 
 To run the extension from source instead of the store, use
 `chrome://extensions` → Developer mode → **Load unpacked** and point it at
